@@ -8,9 +8,9 @@ Built with **FastAPI**, **LangGraph**, **Playwright**, and **React + Tailwind CS
 
 ## 1. Demo & Deployed URLs
 
-* **Live Frontend UI**: `https://autonomous-ai-task-worker-frontend.vercel.app` *(or local: `http://localhost:5173`)*
-* **Backend REST API & Swagger**: `https://autonomous-ai-task-worker.onrender.com/docs` *(or local: `http://localhost:8000/docs`)*
-* **Demo Video**: `https://www.youtube.com/watch?v=placeholder-demo-video` *(See [demo-script.md](docs/demo-script.md) for full walkthrough)*
+* **Live URL** : `https://centralign-ai-rho.vercel.app/` 
+
+* **Demo Video**: ` ` 
 
 ---
 
