@@ -143,80 +143,68 @@ class BillingTools:
                 "url": page.url
             }
 
-        # 6. Click save without force=True
+        # 6. Click Save
         await save_btn.click()
-        await page.wait_for_timeout(400)
 
-        # 7. Check for error banner first (e.g. simulated DB lock or validation error)
+        # 7. Wait for either success or error response
+        success_banner = page.locator("#success-banner")
         error_banner = page.locator("#error-banner")
-        if await error_banner.is_visible():
-            err_msg = await page.locator("#error-message").text_content()
-            err_text = err_msg.strip() if err_msg else "Save operation failed."
-            logger.warning(f"Billing save operation failed: {err_text}")
+
+        try:
+            await page.wait_for_function(
+                """() => {
+                    const success = document.querySelector('#success-banner');
+                    const error = document.querySelector('#error-banner');
+
+                    const successVisible =
+                        success && getComputedStyle(success).display !== 'none';
+
+                    const errorVisible =
+                        error && getComputedStyle(error).display !== 'none';
+
+                    return successVisible || errorVisible;
+                }""",
+                timeout=5000
+            )
+        except Exception:
+            logger.error("Neither success nor error banner appeared after saving.")
+
             return {
                 "action": "submit_billing_record",
                 "status": "failed",
+                "recoverable": True,
+                "error": "Billing portal did not return a success or error response after Save.",
+                "url": page.url
+            }
+
+        # 8. Check error first
+        if await error_banner.is_visible():
+            err_msg = await page.locator("#error-message").text_content()
+            err_text = err_msg.strip() if err_msg else "Save operation failed."
+
+            logger.warning(f"Billing save operation failed: {err_text}")
+
+            return {
+                "action": "submit_billing_record",
+                "status": "failed",
+                "recoverable": True,
                 "error": err_text,
                 "observation": f"Billing portal reported error: {err_text}"
             }
 
-        # 8. Check for success banner
-        success_banner = page.locator("#success-banner")
+        # 9. Check success
         if await success_banner.is_visible():
             record_id_text = await page.locator("#created-record-id").text_content()
             record_id = record_id_text.strip() if record_id_text else "UNKNOWN"
+
             logger.info(f"Billing record created successfully: {record_id}")
+
             return {
                 "action": "submit_billing_record",
                 "status": "success",
                 "record_id": record_id,
-                "observation": f"Billing record saved successfully with generated Record ID: {record_id}."
+                "observation": (
+                    f"Billing record saved successfully with generated "
+                    f"Record ID: {record_id}."
+                )
             }
-
-        return {
-            "action": "submit_billing_record",
-            "status": "unknown",
-            "observation": "Form submitted but neither success nor error banner was clearly indicated."
-        }
-
-    @staticmethod
-    async def search_billing_record(page: Page, invoice_id: str) -> Dict[str, Any]:
-        """Searches records in billing ledger by invoice ID."""
-        logger.info(f"Searching billing records for Invoice ID: {invoice_id}")
-        await page.click("#tab-records")
-        await page.wait_for_selector("#search-invoice-id", state="visible", timeout=5000)
-
-        await page.fill("#search-invoice-id", invoice_id)
-        await page.click("#verify-button")
-        await page.wait_for_timeout(300)
-
-        rows = await page.locator("#records-tbody tr.record-row").all()
-        matching_records = []
-
-        for row in rows:
-            rec_id = await row.locator(".record-id").text_content()
-            inv_id = await row.locator(".invoice-id").text_content()
-            comp = await row.locator(".company").text_content()
-            amt = await row.locator(".amount").text_content()
-            due = await row.locator(".due-date").text_content()
-
-            if inv_id and inv_id.strip().lower() == invoice_id.strip().lower():
-                matching_records.append({
-                    "record_id": rec_id.strip() if rec_id else "",
-                    "invoice_id": inv_id.strip() if inv_id else "",
-                    "company": comp.strip() if comp else "",
-                    "amount": amt.strip() if amt else "",
-                    "due_date": due.strip() if due else ""
-                })
-
-        return {
-            "action": "search_billing_record",
-            "invoice_id": invoice_id,
-            "found": len(matching_records) > 0,
-            "record": matching_records[0] if matching_records else None,
-            "total_matches": len(matching_records),
-            "observation": (
-                f"Ledger search for '{invoice_id}' returned {len(matching_records)} matching record(s)."
-                + (f" Record ID: {matching_records[0]['record_id']}." if matching_records else "")
-            )
-        }

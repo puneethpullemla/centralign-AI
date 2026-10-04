@@ -7,9 +7,7 @@ interface TaskInputProps {
 }
 
 export const TaskInput: React.FC<TaskInputProps> = ({ onSubmit, isLoading }) => {
-  const [prompt, setPrompt] = useState(
-    'Find the latest invoice from Acme, extract the invoice amount and due date, enter the information into our internal billing system, and tell me once it is completed.'
-  );
+  const [prompt, setPrompt] = useState('');
   const [simulateFailure, setSimulateFailure] = useState(false);
 
   const presets = [
