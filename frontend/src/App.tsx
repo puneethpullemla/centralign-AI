@@ -9,6 +9,7 @@ import { EvidenceGallery } from './components/EvidenceGallery';
 import { Bot, ExternalLink, Activity, Layers, ShieldCheck } from 'lucide-react';
 
 export const App: React.FC = () => {
+  const API_BASE = import.meta.env.VITE_API_URL || "";
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApprovalProcessing, setIsApprovalProcessing] = useState(false);
@@ -109,7 +110,7 @@ export const App: React.FC = () => {
           {/* Quick Sandbox Navigation */}
           <div className="flex items-center gap-3 text-xs">
             <a
-              href="/sandbox/invoice-portal"
+              href={`${API_BASE}/sandbox/invoice-portal`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border border-slate-700/70 transition"
@@ -118,7 +119,7 @@ export const App: React.FC = () => {
               <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
             </a>
             <a
-              href="/sandbox/billing-portal"
+              href={`${API_BASE}/sandbox/billing-portal`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border border-slate-700/70 transition"
