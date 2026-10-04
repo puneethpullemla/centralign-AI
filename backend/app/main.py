@@ -65,10 +65,9 @@ os.makedirs(settings.EVIDENCE_DIR, exist_ok=True)
 app.mount("/evidence", StaticFiles(directory=settings.EVIDENCE_DIR), name="evidence")
 
 # Static / Direct Mounts for Sandbox Portals
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sandbox_invoices_path = os.path.join(BASE_DIR, "sandbox", "invoice-portal")
 sandbox_billing_path = os.path.join(BASE_DIR, "sandbox", "billing-portal")
-
 
 @app.get("/sandbox/invoice-portal", tags=["Sandbox"])
 async def serve_invoice_portal():
