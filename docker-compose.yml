@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: ai_worker_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./app.db}
+      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-gemini-flash-latest}
+      - PLAYWRIGHT_HEADLESS=true
+      - PLAYWRIGHT_SLOWMO_MS=300
+      - INVOICE_PORTAL_URL=http://localhost:8000/sandbox/invoice-portal
+      - BILLING_PORTAL_URL=http://localhost:8000/sandbox/billing-portal
+      - EVIDENCE_DIR=/app/evidence
+      - ENVIRONMENT=development
+      - MAX_RETRIES=2
+      - FRONTEND_URL=http://localhost:5173
+    volumes:
+      - evidence_data:/app/evidence
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ai_worker_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  evidence_data:

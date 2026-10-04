@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    border-color: rgba(245, 158, 11, 0.9);
+  }
+}
+
+.animate-pulse-border {
+  animation: pulse-border 2.5s infinite ease-in-out;
+}
