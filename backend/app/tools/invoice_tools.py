@@ -57,7 +57,7 @@ class InvoiceTools:
     # ============================================================
 
     @staticmethod
-    async def search_company_invoices(
+    async def search_company(
         page: Page,
         company: str,
     ) -> Dict[str, Any]:
