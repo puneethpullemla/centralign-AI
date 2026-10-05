@@ -208,3 +208,51 @@ class BillingTools:
                     f"Record ID: {record_id}."
                 )
             }
+            
+    @staticmethod
+    async def search_billing_record(page: Page, invoice_id: str) -> Dict[str, Any]:
+        """Search billing ledger for a record using invoice ID."""
+        logger.info(f"Searching billing records for Invoice ID: {invoice_id}")
+
+        await page.click("#tab-records")
+        await page.wait_for_selector(
+            "#search-invoice-id",
+            state="visible",
+            timeout=5000
+        )
+
+        await page.fill("#search-invoice-id", invoice_id)
+        await page.click("#verify-button")
+        await page.wait_for_timeout(300)
+
+        rows = await page.locator("#records-tbody tr.record-row").all()
+
+        matching_records = []
+
+        for row in rows:
+            rec_id = await row.locator(".record-id").text_content()
+            inv_id = await row.locator(".invoice-id").text_content()
+            company = await row.locator(".company").text_content()
+            amount = await row.locator(".amount").text_content()
+            due_date = await row.locator(".due-date").text_content()
+
+            if inv_id and inv_id.strip().lower() == invoice_id.strip().lower():
+                matching_records.append({
+                    "record_id": rec_id.strip() if rec_id else "",
+                    "invoice_id": inv_id.strip() if inv_id else "",
+                    "company": company.strip() if company else "",
+                    "amount": amount.strip() if amount else "",
+                    "due_date": due_date.strip() if due_date else ""
+                })
+
+        return {
+            "action": "search_billing_record",
+            "invoice_id": invoice_id,
+            "found": len(matching_records) > 0,
+            "record": matching_records[0] if matching_records else None,
+            "total_matches": len(matching_records),
+            "observation": (
+                f"Ledger search for '{invoice_id}' returned "
+                f"{len(matching_records)} matching record(s)."
+            )
+        }

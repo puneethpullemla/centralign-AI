@@ -6,16 +6,20 @@
   <title>Internal Billing System - Corporate Accounting</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
   <div class="max-w-5xl mx-auto py-10 px-4">
+
     <!-- Header -->
     <header class="flex items-center justify-between pb-6 border-b border-slate-200">
       <div>
         <div class="flex items-center gap-2">
           <span class="inline-block p-2 bg-emerald-600 text-white rounded-lg font-bold text-lg">BS</span>
-          <h1 class="text-2xl font-bold tracking-tight text-slate-900" id="billing-title">Internal Billing System</h1>
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900" id="billing-title">
+            Internal Billing System
+          </h1>
         </div>
-        <p class="text-sm text-slate-500 mt-1">Enterprise Accounts Payable & Ledger Gateway</p>
+        <p class="text-sm text-slate-500 mt-1">Enterprise Accounts Payable &amp; Ledger Gateway</p>
       </div>
       <div class="flex items-center gap-3">
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
@@ -31,7 +35,7 @@
         Create Billing Record
       </button>
       <button id="tab-records" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
-        Search & Verify Records
+        Search &amp; Verify Records
       </button>
     </div>
 
@@ -41,11 +45,13 @@
         <h2 class="text-lg font-semibold text-slate-900 mb-1">Create Billing Record</h2>
         <p class="text-sm text-slate-500 mb-6">Enter invoice data extracted from vendor submissions.</p>
 
-        <!-- Simulated Failure Toggle (for testing Scenario 3) -->
+        <!-- Failure Simulation -->
         <div class="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between text-xs text-amber-800">
           <div>
             <span class="font-bold">Simulate Intermittent Failure:</span>
-            <p class="text-[11px] text-amber-700">First save attempt throws 500 DB lock error; second attempt succeeds.</p>
+            <p class="text-[11px] text-amber-700">
+              First save attempt throws 500 DB lock error; second attempt succeeds.
+            </p>
           </div>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="fail-once-toggle" class="sr-only peer">
@@ -53,19 +59,21 @@
           </label>
         </div>
 
-        <!-- Alert messages -->
+        <!-- Error Banner -->
         <div id="error-banner" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            <span class="font-semibold" id="error-title">Save operation failed</span>
+            <span class="font-semibold">Save operation failed</span>
           </div>
           <p id="error-message" class="text-xs text-red-700 mt-1 pl-7">
-            Error 500: Database lock acquisition timeout. Billing record was NOT created.
+            Error 500: Database lock acquisition timeout.
           </p>
         </div>
 
+        <!-- Success Banner -->
         <div id="success-banner" class="hidden mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 text-sm">
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,7 +82,8 @@
             <span class="font-semibold">Billing record created successfully.</span>
           </div>
           <div class="mt-2 pl-7 text-xs text-emerald-800 font-mono">
-            Record ID: <span id="created-record-id" class="font-bold text-sm bg-emerald-100 px-2 py-0.5 rounded text-emerald-900">BILL-7842</span>
+            Record ID:
+            <span id="created-record-id" class="font-bold text-sm bg-emerald-100 px-2 py-0.5 rounded text-emerald-900">-</span>
           </div>
         </div>
 
@@ -82,58 +91,31 @@
         <form id="billing-form" class="space-y-4" onsubmit="return false;">
           <div>
             <label for="company-input" class="block text-sm font-semibold text-slate-700 mb-1">Company</label>
-            <input
-              type="text"
-              id="company-input"
-              name="company"
-              placeholder="e.g. Acme"
-              required
-              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 text-sm outline-none transition"
-            />
+            <input type="text" id="company-input" name="company" placeholder="e.g. Acme" required
+              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 text-sm outline-none transition">
           </div>
 
           <div>
             <label for="invoice-id-input" class="block text-sm font-semibold text-slate-700 mb-1">Invoice ID</label>
-            <input
-              type="text"
-              id="invoice-id-input"
-              name="invoice_id"
-              placeholder="e.g. INV-1024"
-              required
-              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 text-sm outline-none transition font-mono"
-            />
+            <input type="text" id="invoice-id-input" name="invoice_id" placeholder="e.g. INV-1024" required
+              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 text-sm outline-none transition font-mono">
           </div>
 
           <div>
             <label for="amount-input" class="block text-sm font-semibold text-slate-700 mb-1">Amount</label>
-            <input
-              type="text"
-              id="amount-input"
-              name="amount"
-              placeholder="e.g. ₹48,500"
-              required
-              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 text-sm outline-none transition font-semibold"
-            />
+            <input type="text" id="amount-input" name="amount" placeholder="e.g. ₹48,500" required
+              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 text-sm outline-none transition font-semibold">
           </div>
 
           <div>
             <label for="due-date-input" class="block text-sm font-semibold text-slate-700 mb-1">Due Date</label>
-            <input
-              type="text"
-              id="due-date-input"
-              name="due_date"
-              placeholder="e.g. 2026-10-15"
-              required
-              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 text-sm outline-none transition"
-            />
+            <input type="text" id="due-date-input" name="due_date" placeholder="e.g. 2026-10-15" required
+              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 text-sm outline-none transition">
           </div>
 
           <div class="pt-2">
-            <button
-              type="button"
-              id="save-record-button"
-              class="w-full py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition shadow-sm hover:shadow"
-            >
+            <button type="button" id="save-record-button"
+              class="w-full py-3 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition shadow-sm hover:shadow">
               Save Record
             </button>
           </div>
@@ -143,32 +125,30 @@
 
     <!-- TAB 2: SEARCH & VERIFY RECORDS -->
     <section id="panel-records" class="hidden mt-8 bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
-      <h2 class="text-lg font-semibold text-slate-900 mb-1">Search & Verify Records</h2>
-      <p class="text-sm text-slate-500 mb-6">Verify whether an invoice billing record has been committed to the ledger.</p>
+      <h2 class="text-lg font-semibold text-slate-900 mb-1">Search &amp; Verify Records</h2>
+      <p class="text-sm text-slate-500 mb-6">
+        Verify whether an invoice billing record has been committed to the ledger.
+      </p>
 
+      <!-- Search -->
       <div class="flex flex-col sm:flex-row gap-4 items-end mb-6">
         <div class="flex-1">
           <label for="search-invoice-id" class="block text-sm font-semibold text-slate-700 mb-1">
             Search by Invoice ID
           </label>
-          <input
-            type="text"
-            id="search-invoice-id"
-            placeholder="e.g. INV-1024"
-            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 text-sm outline-none transition font-mono"
-          />
+          <input type="text" id="search-invoice-id" placeholder="e.g. INV-1024"
+            class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 text-sm outline-none transition font-mono">
         </div>
-        <button
-          type="button"
-          id="verify-button"
-          class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-lg transition shadow-sm"
-        >
+        <button type="button" id="verify-button"
+          class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-lg transition shadow-sm">
           Verify Record
         </button>
       </div>
 
+      <!-- Verification Banner -->
       <div id="verify-status-banner" class="hidden mb-6 p-4 rounded-lg text-sm"></div>
 
+      <!-- Records Table -->
       <div class="overflow-x-auto">
         <table id="records-table" class="w-full text-left border-collapse">
           <thead>
@@ -181,9 +161,7 @@
               <th class="py-3 px-6">Status</th>
             </tr>
           </thead>
-          <tbody id="records-tbody" class="divide-y divide-slate-100 text-sm">
-            <!-- Records populated dynamically -->
-          </tbody>
+          <tbody id="records-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
         </table>
       </div>
 
@@ -191,75 +169,134 @@
         <p class="text-sm font-medium">No matching billing records found.</p>
       </div>
     </section>
+
   </div>
 
   <script>
-    document.getElementById("billing-timestamp").textContent = new Date().toLocaleDateString();
+    document.getElementById("billing-timestamp").textContent =
+      new Date().toLocaleDateString();
 
-    // Storage for billing records
-    const STORAGE_KEY = "internal_billing_records_store";
-    function getStoredRecords() {
-      try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
-      } catch (e) {
-        return [];
+    /*
+     * Billing records live in the FastAPI backend (no localStorage).
+     * Manual saves and AI-agent saves both use:
+     *   GET  /api/billing/records
+     *   POST /api/billing/records
+     */
+    const API_BASE = "/api";
+    let records = [];
+
+    // ---------- Backend API ----------
+
+    async function getRecords() {
+      const response = await fetch(`${API_BASE}/billing/records`, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to load billing records: ${response.status}`);
       }
-    }
-    function saveStoredRecords(records) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+
+      const data = await response.json();
+      return data.records || [];
     }
 
-    // Pre-populate with existing records if empty
-    let records = getStoredRecords();
-    if (records.length === 0) {
-      records = [
-        { recordId: "BILL-7830", invoiceId: "INV-1002", company: "Acme", amount: "₹27,500", dueDate: "2026-09-05", status: "VERIFIED" },
-        { recordId: "BILL-7835", invoiceId: "INV-2010", company: "Globex", amount: "₹42,000", dueDate: "2026-08-01", status: "VERIFIED" }
-      ];
-      saveStoredRecords(records);
+    async function createRecord(company, invoiceId, amount, dueDate) {
+      const response = await fetch(`${API_BASE}/billing/records`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          company: company,
+          invoice_id: invoiceId,
+          amount: amount,
+          due_date: dueDate
+        })
+      });
+
+      if (!response.ok) {
+        let message = `Failed to save billing record: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) {
+            message = errorData.detail;
+          }
+        } catch (e) {
+          // Ignore JSON parsing error
+        }
+        throw new Error(message);
+      }
+
+      return await response.json();
     }
 
-    // Tabs
+    // ---------- Tabs ----------
+
     const tabCreate = document.getElementById("tab-create");
     const tabRecords = document.getElementById("tab-records");
     const panelCreate = document.getElementById("panel-create");
     const panelRecords = document.getElementById("panel-records");
 
     tabCreate.addEventListener("click", () => {
-      tabCreate.className = "pb-3 border-b-2 border-emerald-600 text-emerald-700 transition";
-      tabRecords.className = "pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+      tabCreate.className =
+        "pb-3 border-b-2 border-emerald-600 text-emerald-700 transition";
+      tabRecords.className =
+        "pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
       panelCreate.classList.remove("hidden");
       panelRecords.classList.add("hidden");
     });
 
-    tabRecords.addEventListener("click", () => {
-      tabRecords.className = "pb-3 border-b-2 border-emerald-600 text-emerald-700 transition";
-      tabCreate.className = "pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+    tabRecords.addEventListener("click", async () => {
+      tabRecords.className =
+        "pb-3 border-b-2 border-emerald-600 text-emerald-700 transition";
+      tabCreate.className =
+        "pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
       panelRecords.classList.remove("hidden");
       panelCreate.classList.add("hidden");
-      renderRecords(records);
+
+      // Always load latest records from backend
+      try {
+        records = await getRecords();
+        renderRecords(records);
+      } catch (error) {
+        console.error("Failed to load billing records:", error);
+        records = [];
+        renderRecords(records);
+      }
     });
 
-    // Form elements
+    // ---------- Form elements ----------
+
     const saveBtn = document.getElementById("save-record-button");
     const companyInput = document.getElementById("company-input");
     const invoiceIdInput = document.getElementById("invoice-id-input");
     const amountInput = document.getElementById("amount-input");
     const dueDateInput = document.getElementById("due-date-input");
     const errorBanner = document.getElementById("error-banner");
+    const errorMessage = document.getElementById("error-message");
     const successBanner = document.getElementById("success-banner");
     const createdRecordIdEl = document.getElementById("created-record-id");
     const failOnceToggle = document.getElementById("fail-once-toggle");
 
-    // Failure simulation state
+    // ---------- Failure simulation ----------
+
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("fail_once") === "true" || urlParams.get("simulate_error") === "true") {
+
+    if (
+      urlParams.get("fail_once") === "true" ||
+      urlParams.get("simulate_error") === "true"
+    ) {
       failOnceToggle.checked = true;
     }
-    let failureSimulated = sessionStorage.getItem("simulated_failure_triggered") === "true";
 
-    saveBtn.addEventListener("click", () => {
+    let failureSimulated =
+      sessionStorage.getItem("simulated_failure_triggered") === "true";
+
+    // ---------- Save billing record ----------
+
+    saveBtn.addEventListener("click", async () => {
       const company = companyInput.value.trim();
       const invoiceId = invoiceIdInput.value.trim();
       const amount = amountInput.value.trim();
@@ -270,39 +307,54 @@
         return;
       }
 
-      // Check if failure is simulated on first attempt
+      successBanner.classList.add("hidden");
+      errorBanner.classList.add("hidden");
+
+      // Simulated first-attempt failure
       if (failOnceToggle.checked && !failureSimulated) {
         failureSimulated = true;
         failOnceToggle.checked = false;
         sessionStorage.setItem("simulated_failure_triggered", "true");
-        successBanner.classList.add("hidden");
+
         errorBanner.classList.remove("hidden");
-        console.warn("Simulated 500 error triggered for testing agent failure recovery.");
+        errorMessage.textContent =
+          "Error 500: Database lock acquisition timeout. Billing record was NOT created.";
+
+        console.warn(
+          "Simulated 500 error triggered for testing agent failure recovery."
+        );
         return;
       }
 
-      // Successful save
-      errorBanner.classList.add("hidden");
-      
-      // Generate realistic sequential ID
-      const recordId = "BILL-" + (7840 + records.length + 1);
-      const newRecord = {
-        recordId,
-        invoiceId,
-        company,
-        amount,
-        dueDate,
-        status: "COMMITTED"
-      };
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
 
-      records.push(newRecord);
-      saveStoredRecords(records);
+      try {
+        const savedRecord = await createRecord(company, invoiceId, amount, dueDate);
 
-      createdRecordIdEl.textContent = recordId;
-      successBanner.classList.remove("hidden");
+        createdRecordIdEl.textContent = savedRecord.record_id;
+        successBanner.classList.remove("hidden");
+
+        // Reload so UI and agent share the same backend state
+        records = await getRecords();
+
+        console.log("Billing record saved:", savedRecord);
+        console.log("Current backend records:", records);
+      } catch (error) {
+        console.error("Billing save failed:", error);
+
+        successBanner.classList.add("hidden");
+        errorBanner.classList.remove("hidden");
+        errorMessage.textContent =
+          error.message || "Failed to save billing record. Please try again.";
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Record";
+      }
     });
 
-    // Verification / Search
+    // ---------- Record table ----------
+
     const searchInvInput = document.getElementById("search-invoice-id");
     const verifyBtn = document.getElementById("verify-button");
     const recordsTbody = document.getElementById("records-tbody");
@@ -311,85 +363,136 @@
 
     function renderRecords(list) {
       recordsTbody.innerHTML = "";
-      if (list.length === 0) {
+
+      if (!list || list.length === 0) {
         noRecordsMsg.classList.remove("hidden");
         return;
       }
+
       noRecordsMsg.classList.add("hidden");
 
-      list.forEach(r => {
+      list.forEach((r) => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-slate-50/80 transition record-row";
-        tr.setAttribute("data-record-id", r.recordId);
-        tr.setAttribute("data-invoice-id", r.invoiceId);
-        tr.setAttribute("data-company", r.company);
-        tr.setAttribute("data-amount", r.amount);
-        tr.setAttribute("data-due-date", r.dueDate);
+
+        // Backend uses snake_case: record_id, invoice_id, due_date
+        tr.setAttribute("data-record-id", r.record_id || "");
+        tr.setAttribute("data-invoice-id", r.invoice_id || "");
+        tr.setAttribute("data-company", r.company || "");
+        tr.setAttribute("data-amount", r.amount || "");
+        tr.setAttribute("data-due-date", r.due_date || "");
 
         tr.innerHTML = `
-          <td class="py-3 px-6 font-mono font-bold text-emerald-700 record-id">${r.recordId}</td>
-          <td class="py-3 px-6 font-mono text-slate-700 invoice-id">${r.invoiceId}</td>
-          <td class="py-3 px-6 font-medium text-slate-900 company">${r.company}</td>
-          <td class="py-3 px-6 font-semibold text-slate-900 amount">${r.amount}</td>
-          <td class="py-3 px-6 text-slate-600 due-date">${r.dueDate}</td>
+          <td class="py-3 px-6 font-mono font-bold text-emerald-700 record-id">${r.record_id || ""}</td>
+          <td class="py-3 px-6 font-mono text-slate-700 invoice-id">${r.invoice_id || ""}</td>
+          <td class="py-3 px-6 font-medium text-slate-900 company">${r.company || ""}</td>
+          <td class="py-3 px-6 font-semibold text-slate-900 amount">${r.amount || ""}</td>
+          <td class="py-3 px-6 text-slate-600 due-date">${r.due_date || ""}</td>
           <td class="py-3 px-6">
             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">
-              ${r.status}
+              ${r.status || "COMMITTED"}
             </span>
           </td>
         `;
+
         recordsTbody.appendChild(tr);
       });
     }
 
-    function executeVerification() {
+    // ---------- Search / verify ----------
+
+    async function executeVerification() {
       const q = searchInvInput.value.trim().toLowerCase();
-      records = getStoredRecords();
+
+      try {
+        // Always fetch latest so agent-created records show up
+        records = await getRecords();
+      } catch (error) {
+        console.error("Failed to load records:", error);
+
+        verifyBanner.className =
+          "mb-6 p-4 rounded-lg text-sm bg-red-50 border border-red-200 text-red-800";
+        verifyBanner.innerHTML = `
+          <div class="font-semibold">Unable to load billing records</div>
+          <p class="text-xs mt-1">${error.message}</p>
+        `;
+        verifyBanner.classList.remove("hidden");
+        return;
+      }
+
+      // No search query: show everything
       if (!q) {
         renderRecords(records);
         verifyBanner.classList.add("hidden");
         return;
       }
 
-      const matches = records.filter(r => r.invoiceId.toLowerCase() === q);
-      renderRecords(matches);
+      const matches = records.filter(
+        (r) => (r.invoice_id || "").trim().toLowerCase() === q
+      );
 
+      renderRecords(matches);
       verifyBanner.classList.remove("hidden");
+
       if (matches.length > 0) {
-        verifyBanner.className = "mb-6 p-4 rounded-lg text-sm bg-emerald-50 border border-emerald-200 text-emerald-800";
+        // Record found
+        const record = matches[0];
+
+        verifyBanner.className =
+          "mb-6 p-4 rounded-lg text-sm bg-emerald-50 border border-emerald-200 text-emerald-800";
         verifyBanner.innerHTML = `
           <div class="flex items-center gap-2 font-semibold">
-            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
             Verification Passed: Record Found in Billing Ledger
           </div>
           <p class="text-xs text-emerald-700 mt-1 pl-7">
-            Found record <strong>${matches[0].recordId}</strong> for Invoice <strong>${matches[0].invoiceId}</strong> (${matches[0].company}, ${matches[0].amount}, Due: ${matches[0].dueDate}).
+            Found record <strong>${record.record_id}</strong>
+            for Invoice <strong>${record.invoice_id}</strong>
+            (${record.company}, ${record.amount}, Due: ${record.due_date}).
           </p>
         `;
       } else {
-        verifyBanner.className = "mb-6 p-4 rounded-lg text-sm bg-amber-50 border border-amber-200 text-amber-800";
+        // Record not found
+        verifyBanner.className =
+          "mb-6 p-4 rounded-lg text-sm bg-amber-50 border border-amber-200 text-amber-800";
         verifyBanner.innerHTML = `
           <div class="flex items-center gap-2 font-semibold">
-            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
             Record Not Found
           </div>
           <p class="text-xs text-amber-700 mt-1 pl-7">
-            No billing record exists with Invoice ID: <strong>${searchInvInput.value.trim()}</strong>.
+            No billing record exists with Invoice ID:
+            <strong>${searchInvInput.value.trim()}</strong>.
           </p>
         `;
       }
     }
 
     verifyBtn.addEventListener("click", executeVerification);
+
     searchInvInput.addEventListener("keyup", (e) => {
-      if (e.key === "Enter") executeVerification();
+      if (e.key === "Enter") {
+        executeVerification();
+      }
     });
 
-    // Check query params for direct verify tab navigation
-    if (urlParams.get("tab") === "records" || urlParams.get("verify") || urlParams.get("search")) {
+    // ---------- Direct verify URL ----------
+
+    if (
+      urlParams.get("tab") === "records" ||
+      urlParams.get("verify") ||
+      urlParams.get("search")
+    ) {
       tabRecords.click();
+
       if (urlParams.get("search") || urlParams.get("invoice_id")) {
-        searchInvInput.value = urlParams.get("search") || urlParams.get("invoice_id");
+        searchInvInput.value =
+          urlParams.get("search") || urlParams.get("invoice_id");
         executeVerification();
       }
     }
