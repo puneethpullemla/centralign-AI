@@ -19,9 +19,13 @@ class PlanStep(BaseModel):
 
 class StructuredPlan(BaseModel):
     goal: str
-    target_company: str = Field(description="The company name identified from the user task")
-    steps: List[PlanStep]
-
+    target_company: Optional[str] = None
+    valid_task: bool = Field(
+        default=True,
+        description="Whether the user request is a valid invoice processing task"
+    )
+    rejection_reason: Optional[str] = None
+    steps: List[PlanStep] = [] 
 
 def get_llm():
     """Initializes LLM instance according to configuration."""
@@ -75,25 +79,118 @@ class TaskPlanner:
 
     @classmethod
     def _create_deterministic_plan(cls, user_task: str) -> StructuredPlan:
-        # Dynamic company extraction regex
-        match = re.search(r"from\s+([A-Za-z0-9_\-\.]+)", user_task, re.IGNORECASE)
-        if match:
-            company = match.group(1).strip()
-        else:
-            # Check for known tokens or words before "invoice"
-            match_inv = re.search(r"([A-Za-z0-9_\-\.]+)\s+invoice", user_task, re.IGNORECASE)
-            company = match_inv.group(1).strip() if match_inv else "Acme"
+        task = user_task.strip()
+
+        # Basic validation
+        if not task:
+            return StructuredPlan(
+                goal="",
+                target_company=None,
+                valid_task=False,
+                rejection_reason="Empty task.",
+                steps=[]
+            )
+
+        # Task must be related to invoice processing
+        invoice_keywords = [
+            "invoice",
+            "billing",
+            "bill",
+            "vendor invoice",
+            "billing record"
+        ]
+
+        if not any(keyword in task.lower() for keyword in invoice_keywords):
+            return StructuredPlan(
+                goal=task,
+                target_company=None,
+                valid_task=False,
+                rejection_reason=(
+                    "Invalid task. Please provide a task related to "
+                    "finding an invoice and processing it in the billing system."
+                ),
+                steps=[]
+            )
+
+        # Extract company from:
+        # "invoice from Acme"
+        # "latest invoice from Infosys"
+        match = re.search(
+            r"(?:invoice|invoices)\s+from\s+([A-Za-z0-9_.-]+)",
+            task,
+            re.IGNORECASE
+        )
+
+        # Also support:
+        # "from Acme invoice"
+        if not match:
+            match = re.search(
+                r"from\s+([A-Za-z0-9_.-]+)",
+                task,
+                re.IGNORECASE
+            )
+
+        if not match:
+            return StructuredPlan(
+                goal=task,
+                target_company=None,
+                valid_task=False,
+                rejection_reason=(
+                    "Could not identify the company. "
+                    "Please specify the company name."
+                ),
+                steps=[]
+            )
+
+        company = match.group(1).strip()
 
         return StructuredPlan(
             goal=f"Process latest invoice for {company} and record in billing system",
             target_company=company,
+            valid_task=True,
+            rejection_reason=None,
             steps=[
-                PlanStep(id=1, description="Open invoice portal", action="open_invoice_portal", expected_outcome="Invoice Portal visible"),
-                PlanStep(id=2, description=f"Search {company} invoices", action="search_company_invoices", expected_outcome=f"Invoices for {company} listed"),
-                PlanStep(id=3, description=f"Extract latest {company} invoice details", action="extract_latest_invoice", expected_outcome="Amount, date, and due date extracted"),
-                PlanStep(id=4, description="Open internal billing portal", action="open_billing_portal", expected_outcome="Billing system visible"),
-                PlanStep(id=5, description="Fill billing form with extracted data", action="fill_billing_form", expected_outcome="Form fields populated"),
-                PlanStep(id=6, description="Submit billing record to ledger", action="submit_billing_record", expected_outcome="Record saved or error caught"),
-                PlanStep(id=7, description="Verify saved record in billing ledger", action="verify_billing_record", expected_outcome="Ledger verification confirmed")
+                PlanStep(
+                    id=1,
+                    description="Open invoice portal",
+                    action="open_invoice_portal",
+                    expected_outcome="Invoice Portal visible"
+                ),
+                PlanStep(
+                    id=2,
+                    description=f"Search {company} invoices",
+                    action="search_company_invoices",
+                    expected_outcome=f"Invoices for {company} listed"
+                ),
+                PlanStep(
+                    id=3,
+                    description=f"Extract latest {company} invoice details",
+                    action="extract_latest_invoice",
+                    expected_outcome="Amount, date, and due date extracted"
+                ),
+                PlanStep(
+                    id=4,
+                    description="Open internal billing portal",
+                    action="open_billing_portal",
+                    expected_outcome="Billing system visible"
+                ),
+                PlanStep(
+                    id=5,
+                    description="Fill billing form with extracted data",
+                    action="fill_billing_form",
+                    expected_outcome="Form fields populated"
+                ),
+                PlanStep(
+                    id=6,
+                    description="Submit billing record to ledger",
+                    action="submit_billing_record",
+                    expected_outcome="Record saved or error caught"
+                ),
+                PlanStep(
+                    id=7,
+                    description="Verify saved record in billing ledger",
+                    action="verify_billing_record",
+                    expected_outcome="Ledger verification confirmed"
+                )
             ]
         )
