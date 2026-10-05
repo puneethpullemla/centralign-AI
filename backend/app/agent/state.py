@@ -5,6 +5,10 @@ class AgentState(TypedDict):
     task_id: str
     user_prompt: str
     target_company: Optional[str]
+
+    valid_task: bool
+    rejection_reason: Optional[str]
+
     plan: List[Dict[str, Any]]
     current_step_index: int
     extracted_data: Dict[str, Any]
