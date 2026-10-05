@@ -12,10 +12,6 @@ logger = logging.getLogger(__name__)
 class InvoiceTools:
     """Tools for interacting with the simulated Invoice Portal."""
 
-    # ============================================================
-    # OPEN INVOICE PORTAL
-    # ============================================================
-
     @staticmethod
     async def open_portal(
         page: Page,
@@ -26,35 +22,19 @@ class InvoiceTools:
         url = target_url or settings.INVOICE_PORTAL_URL
 
         if fail_once:
-            url += (
-                ("&" if "?" in url else "?")
-                + "fail_once=true"
-            )
+            url += ("&" if "?" in url else "?") + "fail_once=true"
 
-        logger.info(
-            f"Navigating to Invoice Portal: {url}"
-        )
+        logger.info(f"Navigating to Invoice Portal: {url}")
 
-        await page.goto(
-            url,
-            wait_until="networkidle",
-        )
-
-        title = await page.title()
+        await page.goto(url, wait_until="networkidle")
 
         return {
             "action": "open_invoice_portal",
             "status": "success",
             "url": page.url,
-            "title": title,
-            "observation": (
-                f"Opened Invoice Portal at {page.url}."
-            ),
+            "title": await page.title(),
+            "observation": f"Opened Invoice Portal at {page.url}.",
         }
-
-    # ============================================================
-    # SEARCH COMPANY INVOICES
-    # ============================================================
 
     @staticmethod
     async def search_company(
@@ -66,221 +46,117 @@ class InvoiceTools:
             f"Searching invoice portal for company: {company}"
         )
 
-        # --------------------------------------------------------
-        # Make sure we are on invoice portal
-        # --------------------------------------------------------
-
         if "invoice-portal" not in page.url:
-
             await InvoiceTools.open_portal(page)
 
-        # --------------------------------------------------------
-        # Locate company search field
-        # --------------------------------------------------------
+        # Wait for the invoice table itself.
+        tbody = page.locator("#invoices-tbody")
 
-        search_input = page.locator(
-            "#company-search"
-        )
+        try:
+            await tbody.wait_for(
+                state="attached",
+                timeout=5000,
+            )
+        except Exception as e:
+            return {
+                "action": "search_company_invoices",
+                "status": "failed",
+                "recoverable": False,
+                "error": (
+                    f"Invoice portal table could not be loaded: {str(e)}"
+                ),
+                "observation": "Invoice table was not available.",
+            }
 
-        await search_input.wait_for(
-            state="visible",
-            timeout=5000,
-        )
-
-        # --------------------------------------------------------
-        # Search company
-        # --------------------------------------------------------
-
-        await search_input.fill(company)
-
-        # Click search if the button exists
-        search_button = page.locator(
-            "#search-button"
-        )
-
-        if await search_button.count() > 0:
-
-            await search_button.click()
-
-        else:
-
-            # Some versions of the portal filter
-            # automatically after typing.
-            await page.keyboard.press("Enter")
-
-        # --------------------------------------------------------
-        # Give the UI time to update
-        # --------------------------------------------------------
-
-        await page.wait_for_timeout(300)
-
-        # --------------------------------------------------------
-        # IMPORTANT:
-        # Do NOT wait for invoices-tbody to be "visible".
-        #
-        # The tbody itself can technically be hidden while
-        # the rows/table are rendered.
-        # --------------------------------------------------------
-
-        tbody = page.locator(
-            "#invoices-tbody"
-        )
-
-        await tbody.wait_for(
-            state="attached",
-            timeout=5000,
-        )
-
-        # --------------------------------------------------------
-        # Read invoice rows
-        # --------------------------------------------------------
-
-        rows = page.locator(
-            "#invoices-tbody tr"
-        )
-
-        row_count = await rows.count()
+        rows = page.locator("#invoices-tbody tr")
 
         invoices: List[Dict[str, Any]] = []
 
-        for i in range(row_count):
+        row_count = await rows.count()
 
+        for i in range(row_count):
             row = rows.nth(i)
 
-            # Ignore empty/non-invoice rows
-            if await row.locator(
-                ".invoice-row"
-            ).count() == 0:
-
-                # If the portal does not use
-                # .invoice-row, continue processing.
-                pass
-
             try:
+                invoice_id_el = row.locator(".invoice-id")
+                company_el = row.locator(".company")
+                date_el = row.locator(".invoice-date")
+                amount_el = row.locator(".amount")
+                due_date_el = row.locator(".due-date")
 
-                invoice_id_el = row.locator(
-                    ".invoice-id"
-                )
+                if await invoice_id_el.count() == 0:
+                    continue
 
-                company_el = row.locator(
-                    ".company"
-                )
-
-                date_el = row.locator(
-                    ".invoice-date"
-                )
-
-                amount_el = row.locator(
-                    ".amount"
-                )
-
-                due_date_el = row.locator(
-                    ".due-date"
-                )
-
-                invoice_id = (
-                    await invoice_id_el.text_content()
-                    if await invoice_id_el.count()
-                    else ""
-                )
-
+                invoice_id = await invoice_id_el.text_content()
                 row_company = (
                     await company_el.text_content()
                     if await company_el.count()
                     else ""
                 )
-
                 invoice_date = (
                     await date_el.text_content()
                     if await date_el.count()
                     else ""
                 )
-
                 amount = (
                     await amount_el.text_content()
                     if await amount_el.count()
                     else ""
                 )
-
                 due_date = (
                     await due_date_el.text_content()
                     if await due_date_el.count()
                     else ""
                 )
 
-                invoice_id = (
-                    invoice_id.strip()
-                    if invoice_id
-                    else ""
-                )
-
-                row_company = (
-                    row_company.strip()
-                    if row_company
-                    else ""
-                )
-
-                invoice_date = (
-                    invoice_date.strip()
-                    if invoice_date
-                    else ""
-                )
-
-                amount = (
-                    amount.strip()
-                    if amount
-                    else ""
-                )
-
-                due_date = (
-                    due_date.strip()
-                    if due_date
-                    else ""
-                )
-
-                # ------------------------------------------------
-                # Only include actual invoice records
-                # ------------------------------------------------
+                invoice_id = (invoice_id or "").strip()
+                row_company = (row_company or "").strip()
+                invoice_date = (invoice_date or "").strip()
+                amount = (amount or "").strip()
+                due_date = (due_date or "").strip()
 
                 if not invoice_id:
                     continue
 
-                # ------------------------------------------------
-                # If company is available in the row,
-                # verify it matches the requested company.
-                # ------------------------------------------------
+                # Match company case-insensitively.
+                if row_company.lower() != company.strip().lower():
+                    continue
 
-                if row_company:
-
-                    if (
-                        row_company.lower().strip()
-                        != company.lower().strip()
-                    ):
-                        continue
-
-                invoices.append(
-                    {
-                        "invoice_id": invoice_id,
-                        "company": (
-                            row_company or company
-                        ),
-                        "date": invoice_date,
-                        "amount": amount,
-                        "due_date": due_date,
-                    }
-                )
+                invoices.append({
+                    "invoice_id": invoice_id,
+                    "company": row_company,
+                    "date": invoice_date,
+                    "amount": amount,
+                    "due_date": due_date,
+                })
 
             except Exception as e:
-
                 logger.warning(
                     f"Could not parse invoice row {i}: {e}"
                 )
 
-        # --------------------------------------------------------
-        # IMPORTANT BUSINESS RESULT
-        # --------------------------------------------------------
-
         invoice_count = len(invoices)
+
+        if invoice_count == 0:
+            error_message = (
+                f"No invoices found for company '{company}'."
+            )
+
+            logger.warning(error_message)
+
+            return {
+                "action": "search_company_invoices",
+                "status": "failed",
+                "recoverable": False,
+                "business_error": True,
+                "company": company,
+                "invoices": [],
+                "invoice_count": 0,
+                "count": 0,
+                "found": False,
+                "error": error_message,
+                "observation": error_message,
+            }
 
         logger.info(
             f"Found {invoice_count} invoice(s) "
@@ -294,18 +170,12 @@ class InvoiceTools:
             "invoices": invoices,
             "invoice_count": invoice_count,
             "count": invoice_count,
-            "found": invoice_count > 0,
+            "found": True,
             "observation": (
-                f"Filtered invoices by company "
-                f"'{company}'. UI status: "
                 f"Found {invoice_count} invoice(s) "
-                f'matching "{company}".'
+                f"matching '{company}'."
             ),
         }
-
-    # ============================================================
-    # EXTRACT LATEST INVOICE
-    # ============================================================
 
     @staticmethod
     async def extract_latest_invoice(
@@ -315,66 +185,45 @@ class InvoiceTools:
 
         logger.info(
             f"Extracting latest invoice"
-            + (
-                f" for {company}"
-                if company
-                else ""
+            + (f" for {company}" if company else "")
+        )
+
+        tbody = page.locator("#invoices-tbody")
+
+        try:
+            await tbody.wait_for(
+                state="attached",
+                timeout=5000,
             )
-        )
+        except Exception as e:
+            return {
+                "action": "extract_latest_invoice",
+                "status": "failed",
+                "recoverable": False,
+                "error": str(e),
+                "observation": "Invoice table was not available.",
+            }
 
-        # --------------------------------------------------------
-        # Make sure invoice table exists
-        # --------------------------------------------------------
-
-        tbody = page.locator(
-            "#invoices-tbody"
-        )
-
-        await tbody.wait_for(
-            state="attached",
-            timeout=5000,
-        )
-
-        rows = page.locator(
-            "#invoices-tbody tr"
-        )
-
-        row_count = await rows.count()
+        rows = page.locator("#invoices-tbody tr")
 
         invoices: List[Dict[str, Any]] = []
 
-        for i in range(row_count):
+        for i in range(await rows.count()):
 
             row = rows.nth(i)
 
             try:
-
-                invoice_id_el = row.locator(
-                    ".invoice-id"
-                )
+                invoice_id_el = row.locator(".invoice-id")
 
                 if await invoice_id_el.count() == 0:
                     continue
 
-                invoice_id = await (
-                    invoice_id_el.text_content()
-                )
+                invoice_id = await invoice_id_el.text_content()
 
-                company_el = row.locator(
-                    ".company"
-                )
-
-                date_el = row.locator(
-                    ".invoice-date"
-                )
-
-                amount_el = row.locator(
-                    ".amount"
-                )
-
-                due_date_el = row.locator(
-                    ".due-date"
-                )
+                company_el = row.locator(".company")
+                date_el = row.locator(".invoice-date")
+                amount_el = row.locator(".amount")
+                due_date_el = row.locator(".due-date")
 
                 row_company = (
                     await company_el.text_content()
@@ -400,89 +249,39 @@ class InvoiceTools:
                     else ""
                 )
 
-                invoice_id = (
-                    invoice_id.strip()
-                    if invoice_id
-                    else ""
-                )
-
-                row_company = (
-                    row_company.strip()
-                    if row_company
-                    else ""
-                )
-
-                invoice_date = (
-                    invoice_date.strip()
-                    if invoice_date
-                    else ""
-                )
-
-                amount = (
-                    amount.strip()
-                    if amount
-                    else ""
-                )
-
-                due_date = (
-                    due_date.strip()
-                    if due_date
-                    else ""
-                )
+                invoice_id = (invoice_id or "").strip()
+                row_company = (row_company or "").strip()
+                invoice_date = (invoice_date or "").strip()
+                amount = (amount or "").strip()
+                due_date = (due_date or "").strip()
 
                 if not invoice_id:
                     continue
 
-                # ------------------------------------------------
-                # Company filter
-                # ------------------------------------------------
-
                 if (
                     company
-                    and row_company
-                    and row_company.lower()
-                    != company.lower()
+                    and row_company.lower() != company.lower()
                 ):
                     continue
 
-                invoices.append(
-                    {
-                        "invoice_id": invoice_id,
-                        "company": (
-                            row_company
-                            or company
-                            or ""
-                        ),
-                        "date": invoice_date,
-                        "amount": amount,
-                        "due_date": due_date,
-                    }
-                )
+                invoices.append({
+                    "invoice_id": invoice_id,
+                    "company": row_company or company or "",
+                    "date": invoice_date,
+                    "amount": amount,
+                    "due_date": due_date,
+                })
 
             except Exception as e:
-
                 logger.warning(
                     f"Could not parse invoice row {i}: {e}"
                 )
 
-        # --------------------------------------------------------
-        # No invoice found
-        # --------------------------------------------------------
-
         if not invoices:
-
-            company_name = (
-                company
-                or "requested company"
-            )
+            company_name = company or "requested company"
 
             error_message = (
-                f"No invoices found for "
-                f"company '{company_name}'."
-            )
-
-            logger.warning(
-                error_message
+                f"No invoices found for company '{company_name}'."
             )
 
             return {
@@ -495,21 +294,9 @@ class InvoiceTools:
                 "observation": error_message,
             }
 
-        # --------------------------------------------------------
-        # Sort by invoice date
-        # --------------------------------------------------------
-
         def parse_date(invoice: Dict[str, Any]):
+            date_value = invoice.get("date", "")
 
-            date_value = invoice.get(
-                "date",
-                "",
-            )
-
-            if not date_value:
-                return datetime.min
-
-            # Try common formats
             formats = [
                 "%Y-%m-%d",
                 "%d-%m-%Y",
@@ -519,19 +306,14 @@ class InvoiceTools:
             ]
 
             for fmt in formats:
-
                 try:
-
                     return datetime.strptime(
                         date_value,
                         fmt,
                     )
-
                 except ValueError:
                     continue
 
-            # If date cannot be parsed,
-            # keep it at the bottom.
             return datetime.min
 
         invoices.sort(
@@ -553,11 +335,10 @@ class InvoiceTools:
             "latest_invoice": latest,
             "observation": (
                 f"Identified latest invoice "
-                f"'{latest['invoice_id']}' "
-                f"for {latest.get('company', company)} "
-                f"dated {latest.get('date')} "
-                f"with Amount: {latest.get('amount')} "
-                f"and Due Date: "
-                f"{latest.get('due_date')}."
+                f"'{latest['invoice_id']}' for "
+                f"{latest['company']} dated "
+                f"{latest['date']} with Amount: "
+                f"{latest['amount']} and Due Date: "
+                f"{latest['due_date']}."
             ),
         }
