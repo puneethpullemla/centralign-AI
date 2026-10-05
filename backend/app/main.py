@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.config import settings
 from app.db.database import init_db
-from app.api.routes import tasks, executions, approvals
+from app.api.routes import tasks, executions, approvals , billing
 
 # Configure structured logging
 logging.basicConfig(
@@ -47,7 +47,7 @@ app.add_middleware(
 app.include_router(tasks.router, prefix="/api")
 app.include_router(executions.router, prefix="/api")
 app.include_router(approvals.router, prefix="/api")
-
+app.include_router(billing.router, prefix="/api")
 
 @app.get("/api/health", tags=["Health"])
 def health_check():
